@@ -5,7 +5,7 @@ voa is small on purpose: one inbox, three exits (done, star, remind me), a photo
 ## Setup
 
 ```bash
-git clone <this repository>
+git clone https://github.com/plainroom/voa.git
 cd voa
 npm install
 npm run tauri dev
