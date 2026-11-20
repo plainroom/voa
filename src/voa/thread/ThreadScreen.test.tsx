@@ -146,7 +146,8 @@ describe("ThreadScreen", () => {
     source.messages = async (k) => [message(k.threadId), { ...message(k.threadId), id: "m-new", body_html: "newest" }];
     render(<ThreadScreen />);
     await screen.findByText("newest");
-    expect(scrolled).toHaveLength(1);
+    // The body reports its height after it is drawn, so the scroll can land a tick later.
+    await waitFor(() => expect(scrolled).toHaveLength(1));
     expect(scrolled[0]).toContain("newest");
     // drawn again (Translate): the page stays where the person is
     act(() => void window.dispatchEvent(new Event("resize-newest")));
