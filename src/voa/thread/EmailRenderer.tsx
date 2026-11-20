@@ -1,6 +1,7 @@
 import { useRef, useCallback, useMemo, useState, useEffect } from "react";
 import { ImageOff } from "lucide-react";
 import { convertFileSrc } from "@tauri-apps/api/core";
+import { getCurrentWindow } from "@tauri-apps/api/window";
 import { useDark } from "@/voa/settings/appearance";
 import { appImage, hasBlockedImages, stripRemoteImages, throughApp } from "@/utils/imageBlocker";
 import { addToAllowlist } from "@/services/db/imageAllowlist";
@@ -27,6 +28,14 @@ export const MAIL_SANDBOX = "allow-same-origin allow-popups allow-popups-to-esca
  */
 function scheme(isDark: boolean, isPlainText: boolean): "light" | "dark" {
   return isDark && isPlainText ? "dark" : "light";
+}
+
+/** The reading surface around the mail. Focusing it is what a click on the empty area does, and what takes the key out of the frame. */
+function park(iframe: HTMLIFrameElement): void {
+  const host = iframe.closest("main") ?? iframe.parentElement;
+  if (!(host instanceof HTMLElement)) return;
+  host.tabIndex = -1;
+  host.focus({ preventScroll: true });
 }
 
 interface EmailRendererProps {
@@ -219,6 +228,12 @@ export function EmailRenderer({
       const { key, code, shiftKey, metaKey, ctrlKey } = e;
       window.dispatchEvent(new KeyboardEvent("keydown", { key, code, shiftKey, metaKey, ctrlKey, bubbles: true, cancelable: true }));
     });
+    // The link takes the key. Park on the reading surface before the browser opens, so coming back restores that, not the link.
+    doc.addEventListener("click", (e) => {
+      const raw = e.target as { closest?: (sel: string) => unknown } | null;
+      if (typeof raw?.closest !== "function" || !raw.closest("a[href]")) return;
+      park(iframe);
+    });
     onSizedRef.current?.();
     return true;
   }, []);
@@ -241,6 +256,37 @@ export function EmailRenderer({
       iframe?.removeEventListener("load", stop);
     };
   }, [srcDoc, setUp]);
+  // Coming back restores the link. blur() leaves it there in this web view, so focus the reading surface, again after the restore.
+  useEffect(() => {
+    const release = () => {
+      const iframe = iframeRef.current;
+      if (!iframe) return;
+      if (document.activeElement === iframe || iframe.contentDocument?.hasFocus()) park(iframe);
+    };
+    const soon = () => {
+      release();
+      requestAnimationFrame(release);
+      setTimeout(release, 0);
+    };
+    window.addEventListener("focus", soon);
+    let unlisten: (() => void) | undefined;
+    let gone = false;
+    if ("__TAURI_INTERNALS__" in window) {
+      void getCurrentWindow()
+        .onFocusChanged(({ payload }) => {
+          if (payload) soon();
+        })
+        .then((stop) => {
+          if (gone) stop();
+          else unlisten = stop;
+        });
+    }
+    return () => {
+      gone = true;
+      window.removeEventListener("focus", soon);
+      unlisten?.();
+    };
+  }, []);
   // An image the app could not fetch is asked for by the mail's own page: a host that turns away whatever is not a
   // browser (vivo.com.br's Cloudflare answers the app with a challenge) still gives it to the web view. At the frame's
   // load, when every image has answered: a frame without scripts sends no image its error event.

@@ -1,7 +1,6 @@
-const CUE =
-  /(?:verification|login|security|one-time) code|c[oó]digo de verifica[cç][aã]o|c[oó]digo de valida[cç][aã]o|c[oó]digo de acesso|c[oó]digo abaixo|[eé] o seu c[oó]digo/gi;
-
-const TOKEN = /\b(\d{4,8}|[A-Z][A-Z0-9]{5,9})\b/g;
+const STEM = /(?<![\p{L}\p{N}])(?:c[oó]digo|code)(?![\p{L}\p{N}])/giu;
+const DIGITS = /\b(\d{4,8})\b/g;
+const LETTERS = /\b([A-Z][A-Z0-9]{5,9})\b/g;
 
 const YEAR = /^(?:19|20)\d{2}$/;
 
@@ -29,34 +28,60 @@ export function plainHead(raw: string | null | undefined): string {
   return text.slice(0, 480);
 }
 
-/**
- * The one code worth copying, or null.
- * A phrase has to say it is a login or verification code. The token closest to that phrase wins:
- * 4 to 8 digits, or 6 to 10 uppercase letters and digits. Years are not codes.
- * ponytail: no body scan past what the caller passes. Callers pass the snippet plus plainHead.
- */
-export function loginCode(text: string): string | null {
-  const clean = text.replace(/[\u200b-\u200f\u202a-\u202e\u2060-\u2064\ufeff]/g, "");
-  const cues = [...clean.matchAll(CUE)];
-  if (cues.length === 0) return null;
+type Span = { start: number; end: number };
 
+function stems(text: string): Span[] {
+  return [...text.matchAll(STEM)].map((m) => ({ start: m.index ?? 0, end: (m.index ?? 0) + m[0].length }));
+}
+
+/** The digit token closest to "código" or "code". A year is not a code. */
+function nearestDigits(text: string, words: Span[]): string | null {
   let best: { code: string; dist: number } | null = null;
-  let bestDigits: { code: string; dist: number } | null = null;
-  for (const token of clean.matchAll(TOKEN)) {
+  for (const token of text.matchAll(DIGITS)) {
     const code = token[1];
     if (!code || YEAR.test(code)) continue;
     const start = token.index ?? 0;
     const end = start + code.length;
-    for (const cue of cues) {
-      const cueStart = cue.index ?? 0;
-      const cueEnd = cueStart + cue[0].length;
-      if (start < cueEnd && end > cueStart) continue;
-      const dist = start >= cueEnd ? start - cueEnd : cueStart - end;
+    for (const word of words) {
+      const dist = start >= word.end ? start - word.end : word.start - end;
       if (!best || dist < best.dist) best = { code, dist };
-      if (/^\d+$/.test(code) && (!bestDigits || dist < bestDigits.dist)) bestDigits = { code, dist };
     }
   }
-  // A heading in all caps (ENTRAR) can sit closer to the phrase than the digits.
-  if (best && bestDigits && !/\d/.test(best.code) && bestDigits.dist <= best.dist + 16) return bestDigits.code;
   return best?.code ?? null;
+}
+
+/**
+ * An uppercase token, when the word sits against it or a colon introduces it.
+ * "off code ... SLOPCOURSE" has neither, so a discount code stays out.
+ */
+function letterCode(text: string, words: Span[]): string | null {
+  let best: { code: string; dist: number } | null = null;
+  for (const token of text.matchAll(LETTERS)) {
+    const code = token[1];
+    if (!code) continue;
+    const start = token.index ?? 0;
+    const end = start + code.length;
+    for (const word of words) {
+      const gap = start >= word.end ? text.slice(word.end, start) : text.slice(end, word.start);
+      const colonAt = gap.lastIndexOf(":");
+      const afterColon = start >= word.end && colonAt >= 0 && !/[\p{L}\p{N}]/u.test(gap.slice(colonAt + 1));
+      if (/[\p{L}\p{N}]/u.test(gap) && !afterColon) continue;
+      if (!best || gap.length < best.dist) best = { code, dist: gap.length };
+    }
+  }
+  return best?.code ?? null;
+}
+
+/**
+ * The one code worth copying, or null.
+ * The mail has to say "código" or "code". The number closest to that word wins:
+ * 4 to 8 digits, or, when there are none, 6 to 10 uppercase letters and digits
+ * stuck to the word or introduced by a colon. Years are not codes.
+ * ponytail: no body scan past what the caller passes. Callers pass the snippet plus plainHead.
+ */
+export function loginCode(text: string): string | null {
+  const clean = text.replace(/[\u200b-\u200f\u202a-\u202e\u2060-\u2064\ufeff]/g, "");
+  const words = stems(clean);
+  if (words.length === 0) return null;
+  return nearestDigits(clean, words) ?? letterCode(clean, words);
 }

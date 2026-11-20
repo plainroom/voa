@@ -331,5 +331,26 @@ describe("EmailRenderer", () => {
       expect(seen).toEqual(["e", "z"]);
       expect(document.activeElement).not.toBe(iframe);
     });
+
+    it("returning to the window leaves the mail, so the next key is the app's", () => {
+      const { container } = render(<EmailRenderer html="<p>Hi</p>" text={null} />);
+      const iframe = frame(container);
+      fireEvent.load(iframe);
+      iframe.focus();
+      window.dispatchEvent(new Event("focus"));
+      expect(document.activeElement).toBe(iframe.parentElement);
+    });
+
+    it("a link click parks on the reading surface before the app leaves", () => {
+      const { container } = render(<EmailRenderer html="<p>Hi</p>" text={null} />);
+      const iframe = frame(container);
+      fireEvent.load(iframe);
+      const doc = iframe.contentDocument!;
+      const link = doc.createElement("a");
+      link.href = "https://example.com";
+      doc.body.appendChild(link);
+      link.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+      expect(document.activeElement).toBe(iframe.parentElement);
+    });
   });
 });

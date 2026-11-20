@@ -7,6 +7,14 @@ import { loginCode, plainHead } from "./loginCode";
 describe("loginCode", () => {
   it("reads a code from the subject", () => {
     expect(loginCode("Hotmart | 515766 is your login code")).toBe("515766");
+    expect(loginCode("Use o código 952292 para configurar o e-mail de recuperação")).toBe("952292");
+    expect(loginCode("Use este código para terminar de configurar a conta:\n\n952292")).toBe("952292");
+    expect(loginCode("usa el código 952292")).toBe("952292");
+    expect(loginCode("código: 952292")).toBe("952292");
+    expect(loginCode("código de verificación: 847291")).toBe("847291");
+    expect(loginCode("el código es 441290")).toBe("441290");
+    expect(loginCode("code: 441290")).toBe("441290");
+    expect(loginCode("code 2026")).toBeNull();
   });
 
   it("reads the codes the archive actually sends", () => {
