@@ -1,0 +1,26 @@
+name: Feature
+description: Something voa should do
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Never paste tokens, passwords, or email content. Describe the problem without quoting the mail.
+  - type: textarea
+    id: want
+    attributes:
+      label: What you want
+      description: What voa should do, and why.
+    validations:
+      required: true
+  - type: input
+    id: macos
+    attributes:
+      label: macOS version
+      description: The version in About This Mac, if you have the app. For example, macOS 26.1.
+      placeholder: macOS 26.1
+  - type: input
+    id: voa
+    attributes:
+      label: voa version
+      description: The version in the name of the disk image you opened, such as 0.4.21. The app has no About screen.
+      placeholder: "0.4.21"

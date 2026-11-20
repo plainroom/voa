@@ -4,6 +4,14 @@ One inbox for all your mail. Three ways out of a message: **done**, **star**, **
 
 voa is a small desktop mail client for people who read mail for a living and want it to end. Every account (Gmail, a personal Outlook or Hotmail account, or any IMAP/SMTP server) lands in the same list, with a colored dot to tell them apart. There is no sidebar, no folders to tend and no settings maze. Your mail and tokens stay in a local database on your machine; there is no voa server. Mail is shown in an isolated frame: no scripts run, and links open in your browser. If a send might not have gone through, voa tells you to check Sent and never sends it again by itself.
 
+## Download
+
+[Download for Mac](https://github.com/plainroom/voa/releases/latest). Apple silicon only. Best on macOS 26, where summaries, labels, translation and Speak run on your Mac. It also opens on macOS 12 to 15.
+
+Not notarized yet. The first time, right-click voa and choose Open.
+
+Apple Intelligence stays on your Mac. Claude is optional: ⌘J uses your own Claude Code, and ⌘⇧J speaks a request.
+
 ![The inbox: every account in one list, a colored dot for each](docs/screenshots/inbox.png)
 
 | Reading | Inbox zero |
@@ -30,7 +38,7 @@ voa is a small desktop mail client for people who read mail for a living and wan
 You need [Node.js](https://nodejs.org/) 24 or newer, [Rust](https://www.rust-lang.org/tools/install) and the [Tauri v2 prerequisites](https://v2.tauri.app/start/prerequisites/) for your system.
 
 ```bash
-git clone <this repository>
+git clone https://github.com/plainroom/voa.git
 cd voa
 npm install
 npm run tauri build      # installer in src-tauri/target/release/bundle/
