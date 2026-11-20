@@ -1,0 +1,1208 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>voa · The calm inbox for your Mac</title>
+    <meta name="description" content="A free, open source mail client for the Mac that gets you to inbox zero. Apple Intelligence on your Mac, and your own Claude if you want it." />
+    <link rel="canonical" href="https://voa.email/" />
+    <meta name="theme-color" content="#ffffff" />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+    <!-- Sharing (Open Graph, X): absolute URLs, the image 1200 x 630. ponytail: the GitHub Pages address; change it here if a domain comes. -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="voa" />
+    <meta property="og:url" content="https://voa.email/" />
+    <meta property="og:title" content="voa · The calm inbox for your Mac" />
+    <meta property="og:description" content="A free, open source mail client for the Mac that gets you to inbox zero. Apple Intelligence on your Mac, and your own Claude if you want it." />
+    <meta property="og:image" content="https://voa.email/og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="The voa inbox over the peaks of its inbox-zero photo, drawn in blue lines." />
+    <meta property="og:locale" content="en_US" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="voa · The calm inbox for your Mac" />
+    <meta name="twitter:description" content="A free, open source mail client for the Mac that gets you to inbox zero. Apple Intelligence on your Mac, and your own Claude if you want it." />
+    <meta name="twitter:image" content="https://voa.email/og.png" />
+    <style>
+      /* The app's own colors (src/voa/ui/tokens.css): its canvas, its neutral greys, its ink. */
+      :root {
+        --paper: #ffffff;
+        --panel: #fafafa;
+        --backdrop: #f1f2f5;
+        --ink: #1d1d1f;
+        --ink-2: #6e6e73;
+        --line: rgba(0, 0, 0, 0.07);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+      }
+      body {
+        background: var(--paper);
+        color: var(--ink);
+        font-family:
+          -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", system-ui,
+          sans-serif;
+        font-size: 15px;
+        -webkit-font-smoothing: antialiased;
+        /* The hero's lines run edge to edge (100vw), which counts the scrollbar too. */
+        overflow-x: clip;
+      }
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+      .page {
+        max-width: 1240px;
+        margin: 0 auto;
+        padding: 18px 24px 0;
+      }
+      /* The nav stays at the top while the page scrolls, its white running edge to edge. */
+      .site-nav {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        height: 56px;
+        margin-top: -10px;
+        background: var(--paper);
+        box-shadow: 0 0 0 100vmax var(--paper);
+        clip-path: inset(0 -100vmax);
+      }
+      /* The nav's Download shows only once the hero's has scrolled away: it opens beside the coffee and fades in. */
+      .site-nav .button.nav-download {
+        max-width: 0;
+        margin-left: -8px;
+        padding: 0;
+        border-width: 0;
+        overflow: hidden;
+        opacity: 0;
+        white-space: nowrap;
+        transition: max-width 0.25s, margin-left 0.25s, padding 0.25s, opacity 0.25s;
+      }
+      .site-nav.cta .button.nav-download {
+        max-width: 120px;
+        margin-left: 0;
+        padding: 0 12px;
+        border-width: 1px;
+        opacity: 1;
+      }
+      .site-nav.stuck::after {
+        content: "";
+        position: absolute;
+        right: -100vmax;
+        bottom: 0;
+        left: -100vmax;
+        height: 1px;
+        background: var(--line);
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 15px;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+      }
+      /* The app icon's cube with its V, drawn for a light page: no dark tile around it. */
+      /* Drawn on a 24 grid and shown at 24 px, so its upright edges land on whole pixels. */
+      .brand .mark-logo {
+        width: 24px;
+        height: 24px;
+      }
+      .nav-end {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+      }
+      .button svg {
+        display: block;
+      }
+      .heart {
+        color: #d1476a;
+      }
+
+      /* Type as Cursor sets it: one size for a title and what follows, the second line grey. */
+      .lead {
+        margin: 0;
+        font-size: 26px;
+        font-weight: 400;
+        /* Whole pixels (not a ratio like 1.25 = 32.5 px), so what sits under the text starts on a whole pixel too. */
+        line-height: 36px;
+        letter-spacing: -0.015em;
+      }
+      /* The names of what voa works with, each after its small mark. */
+      .named {
+        white-space: nowrap;
+      }
+      .logo {
+        display: inline-block;
+        width: 18px;
+        height: 18px;
+        margin: 0 0.22em 0 0.05em;
+        vertical-align: -0.06em;
+      }
+      /* In the hero, what voa works with is only underlined, dotted, in its own color. */
+      .mark {
+        position: relative;
+        white-space: nowrap;
+      }
+      .mark::after {
+        content: "";
+        position: absolute;
+        right: 0;
+        bottom: -1px;
+        left: 0;
+        height: 2px;
+        background: var(--c);
+        -webkit-mask: repeating-linear-gradient(to right, #000 0 2px, transparent 2px 5px);
+        mask: repeating-linear-gradient(to right, #000 0 2px, transparent 2px 5px);
+      }
+      .mark {
+        --c: currentColor;
+      }
+      .hero .lead strong {
+        font-weight: 500;
+      }
+      .lead .sub {
+        color: var(--ink-2);
+      }
+
+      .hero {
+        padding-top: 56px;
+        text-align: center;
+      }
+      .hero .lead {
+        max-width: 640px;
+        margin: 0 auto;
+        /* Centered lines of even length, never one word left alone on the last. */
+        text-wrap: balance;
+      }
+      .hero .actions {
+        justify-content: center;
+      }
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 14px;
+        margin-top: 24px;
+      }
+      .button {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        height: 36px;
+        padding: 0 16px;
+        border-radius: 6px; /* the app's --radius-control */
+        border: 1px solid var(--ink);
+        font-size: 14px;
+        font-weight: 500;
+        background: var(--ink);
+        color: #fff;
+      }
+      /* Hover as the app does it: the dark button a shade lighter, a white one the app's hover grey (--color-hover). */
+      .button:hover {
+        background: #3a3a3d;
+        border-color: #3a3a3d;
+      }
+      /* The repository's stars, after a hairline, once GitHub answers (nothing while the repository is private). */
+      .stars:not(:empty) {
+        margin-left: 4px;
+        padding-left: 10px;
+        border-left: 1px solid var(--line);
+        color: var(--ink-2);
+        font-variant-numeric: tabular-nums;
+      }
+      .button.ghost:hover {
+        background: #f7f7f8;
+        border-color: rgba(0, 0, 0, 0.18);
+      }
+      /* The app's own tip (its --color-tip): a small dark label under the button, on hover or focus. */
+      [data-tip] {
+        position: relative;
+      }
+      [data-tip]::after {
+        content: attr(data-tip);
+        position: absolute;
+        top: calc(100% + 8px);
+        left: 50%;
+        padding: 4px 8px;
+        border-radius: 6px;
+        background: var(--ink);
+        color: #fff;
+        font-size: 12px;
+        font-weight: 500;
+        white-space: nowrap;
+        opacity: 0;
+        transform: translate(-50%, -2px);
+        transition: opacity 0.15s, transform 0.15s;
+        pointer-events: none;
+      }
+      [data-tip]:hover::after,
+      [data-tip]:focus-visible::after {
+        opacity: 1;
+        transform: translate(-50%, 0);
+      }
+      /* The nav's size of the same two buttons. */
+      .button.small {
+        gap: 6px;
+        height: 30px;
+        padding: 0 12px;
+        font-size: 13px;
+      }
+      .button.ghost {
+        background: #fff;
+        color: var(--ink);
+        /* ponytail: a hairline vanishes on the paper and the white button reads smaller than the dark one. */
+        border-color: rgba(0, 0, 0, 0.18);
+      }
+
+      /* The real app (its demo) in a frame, driven by the script below. */
+      /* Behind the hero, the inbox-zero photo (the peaks over the clouds) drawn in blue lines, edge to edge. */
+      .hero-stage {
+        position: relative;
+        width: 100vw;
+        /* ponytail: the window's top (100) plus its height at 980 px wide (612), plus room for its shadow. */
+        height: 760px;
+        margin: 8px 0 0 calc(50% - 50vw);
+      }
+      .hero-stage canvas {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0.8;
+        -webkit-mask: linear-gradient(to bottom, transparent, #000 12%, #000 80%, transparent);
+        mask: linear-gradient(to bottom, transparent, #000 12%, #000 80%, transparent);
+      }
+      .window {
+        position: relative;
+        overflow: hidden;
+        background: #fff;
+        border-radius: 10px;
+        box-shadow:
+          0 0 0 0.5px rgba(0, 0, 0, 0.2),
+          0 12px 40px rgba(0, 0, 0, 0.14);
+      }
+      .hero-stage .window {
+        position: absolute;
+        top: 100px;
+        left: 50%;
+        width: min(980px, 84%);
+        aspect-ratio: 16 / 10;
+        transform: translateX(-50%);
+        box-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.25), 0 24px 60px rgba(20, 20, 40, 0.22);
+      }
+      .pan {
+        position: absolute;
+        inset: 0;
+        transform-origin: 0 0;
+      }
+      .backdrop .window {
+        transition: opacity 0.4s;
+      }
+      .screen {
+        position: absolute;
+        top: 0;
+        left: 0;
+        transform-origin: 0 0;
+        pointer-events: none;
+      }
+      .screen iframe {
+        display: block;
+        width: 100%;
+        height: 100%;
+        border: 0;
+      }
+      .lights {
+        position: absolute;
+        z-index: 2;
+        top: 14px;
+        left: 14px;
+        display: flex;
+        gap: 8px;
+      }
+      .lights i {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        display: block;
+        box-shadow: inset 0 0 0 0.5px rgba(0, 0, 0, 0.15);
+      }
+      .lights i:nth-child(1) {
+        background: #ff5f57;
+      }
+      .lights i:nth-child(2) {
+        background: #febc2e;
+      }
+      .lights i:nth-child(3) {
+        background: #28c840;
+      }
+      .keycap {
+        position: absolute;
+        z-index: 3;
+        left: 50%;
+        bottom: 18px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        /* Concentric with the key inside it: its 6 px corner plus 4 px of padding is this 10 px one. */
+        padding: 4px 12px 4px 4px;
+        border-radius: 10px;
+        background: rgba(29, 29, 31, 0.88);
+        color: #fff;
+        font-size: 13px;
+        font-weight: 500;
+        transform: translate(-50%, 8px);
+        opacity: 0;
+        transition:
+          opacity 0.18s,
+          transform 0.18s;
+        backdrop-filter: blur(8px);
+        white-space: nowrap;
+      }
+      .keycap.on {
+        opacity: 1;
+        transform: translate(-50%, 0);
+      }
+      .keycap kbd {
+        min-width: 26px;
+        height: 26px;
+        padding: 0 7px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 6px;
+        background: #fff;
+        color: var(--ink);
+        font: 600 13px/1 inherit;
+      }
+
+      /* A feature: a panel, the words on the left, the app at its real size cropped by a backdrop on the right. */
+      .feature {
+        display: grid;
+        grid-template-columns: 1fr 2fr;
+        gap: 24px;
+        align-items: center;
+        margin-top: 24px;
+        padding: 16px;
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 10px;
+      }
+      .feature:first-of-type {
+        margin-top: 120px;
+      }
+      /* Every other feature turns around: the app on the left, the words on the right, its window cut off on the left. */
+      .feature:nth-of-type(even) {
+        grid-template-columns: 2fr 1fr;
+      }
+      .feature:nth-of-type(even) .words {
+        order: 2;
+      }
+      .feature:nth-of-type(even) .backdrop .window {
+        right: 32px;
+        left: auto;
+      }
+      .feature .words {
+        padding: 0 24px;
+      }
+      .feature .lead {
+        font-size: 22px;
+        line-height: 28px;
+      }
+      .feature .note {
+        margin-top: 18px;
+        font-size: 14px;
+        color: var(--ink-2);
+      }
+      .feature .note b {
+        color: var(--ink);
+        font-weight: 500;
+      }
+      .backdrop {
+        position: relative;
+        height: 560px;
+        overflow: hidden;
+        background: var(--backdrop);
+        border-radius: 10px;
+      }
+      .backdrop .window {
+        position: absolute;
+        top: 40px;
+        left: 32px;
+      }
+
+      /* Questions: the browser's own disclosure, one hairline between each. */
+      .faq {
+        max-width: 760px;
+        margin: 120px auto 0;
+      }
+      .faq .lead {
+        text-align: center;
+      }
+      .faq-list {
+        margin-top: 32px;
+        border-top: 1px solid var(--line);
+      }
+      .faq details {
+        border-bottom: 1px solid var(--line);
+      }
+      .faq summary {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 18px 2px;
+        font-size: 16px;
+        font-weight: 500;
+        cursor: pointer;
+        list-style: none;
+      }
+      .faq summary::-webkit-details-marker {
+        display: none;
+      }
+      .faq summary::after {
+        content: "+";
+        color: var(--ink-2);
+        font-size: 20px;
+        font-weight: 300;
+        transition: transform 0.2s;
+      }
+      .faq details[open] summary::after {
+        transform: rotate(45deg);
+      }
+      .faq details p {
+        margin: -4px 0 0;
+        padding: 0 2px 20px;
+        color: var(--ink-2);
+        font-size: 15px;
+        line-height: 1.55;
+      }
+      .faq details a {
+        color: var(--ink);
+        text-decoration: underline;
+        text-underline-offset: 2px;
+      }
+      .faq code {
+        padding: 1px 5px;
+        border-radius: 4px;
+        background: var(--panel);
+        font-size: 13px;
+      }
+
+      /* The close: the hero's promise again, over the same peaks in lines. */
+      .end {
+        position: relative;
+        margin-top: 140px;
+        padding-bottom: 300px;
+        text-align: center;
+      }
+      .end .actions {
+        position: relative;
+        z-index: 1;
+        justify-content: center;
+      }
+      .end-lines {
+        position: absolute;
+        bottom: 0;
+        left: calc(50% - 50vw);
+        width: 100vw;
+        /* Under the buttons, never behind them. */
+        height: 260px;
+        opacity: 0.8;
+        -webkit-mask: linear-gradient(to bottom, transparent, #000 30%, #000 75%, transparent);
+        mask: linear-gradient(to bottom, transparent, #000 30%, #000 75%, transparent);
+      }
+
+      footer {
+        display: flex;
+        justify-content: space-between;
+        gap: 40px;
+        flex-wrap: wrap;
+        padding: 40px 0 56px;
+        border-top: 1px solid var(--line);
+        font-size: 13px;
+      }
+      .foot-brand p {
+        margin: 10px 0 0;
+        max-width: 260px;
+        color: var(--ink-2);
+        line-height: 1.5;
+      }
+      .foot-links {
+        display: flex;
+        gap: 64px;
+      }
+      .foot-links div {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .foot-links h3 {
+        margin: 0 0 2px;
+        font-size: 13px;
+        font-weight: 500;
+      }
+      .foot-links a {
+        color: var(--ink-2);
+      }
+      .foot-links a:hover {
+        color: var(--ink);
+      }
+
+      @media (max-width: 860px) {
+        .foot-links {
+          flex-wrap: wrap;
+          gap: 32px;
+        }
+        .page {
+          padding: 16px 16px 0;
+        }
+        .hero {
+          padding-top: 48px;
+        }
+        .lead {
+          font-size: 22px;
+          line-height: 28px;
+        }
+        .hero-stage {
+          height: 340px;
+        }
+        .hero-stage .window {
+          top: 80px;
+          width: 92%;
+        }
+        .feature {
+          grid-template-columns: 1fr;
+          padding: 8px;
+        }
+        .feature .words {
+          padding: 16px 8px 0;
+        }
+        .backdrop {
+          height: auto;
+          padding: 20px 0 20px 16px;
+        }
+        .backdrop .window {
+          position: relative;
+          top: 0;
+          left: 0;
+        }
+        .feature:nth-of-type(even) {
+          grid-template-columns: 1fr;
+        }
+        .feature:nth-of-type(even) .words {
+          order: 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <header class="site-nav">
+        <a class="brand" href="#"><svg class="mark-logo" viewBox="0 0 24 24" aria-hidden="true"><path fill="#1d1d1f" d="M12 2 21 6 12 10 3 6Z" /><path fill="#3a3a3d" d="M2 7.5 11 11.5V22.5L2 18.5Z" /><path fill="#6e6e73" d="M13 11.5 14 11 17 15 22 7.5V18.5L13 22.5Z" /></svg>voa</a>
+        <nav class="nav-end">
+          <a class="button ghost small" href="#sponsor"
+            ><span class="heart" aria-hidden="true">♥</span>Buy me a coffee</a
+          >
+          <a class="button small nav-download" href="#download" tabindex="-1">Download</a>
+        </nav>
+      </header>
+
+      <main class="hero">
+        <p class="lead">
+          <strong>The calm inbox for your Mac.</strong>
+          <span class="sub"
+            >Free and open source, with <span class="mark ai">Apple Intelligence</span> on your Mac and your
+            own <span class="mark claude">Claude</span>, if you want it.</span
+          >
+        </p>
+        <div class="actions" id="download">
+          <a class="button" data-tip="Apple silicon, macOS 26 recommended" href="https://github.com/plainroom/voa/releases/latest">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701" /></svg>
+            Download for Mac
+          </a>
+          <a class="button ghost" href="https://github.com/plainroom/voa">
+            <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8a8 8 0 0 0 5.47 7.59c.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.7 7.7 0 0 1 4 0c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z" /></svg>
+            Star on GitHub<span class="stars" id="stars"></span>
+          </a>
+        </div>
+      </main>
+
+      <div class="hero-stage"><canvas></canvas><div class="window" data-scene="hero"></div></div>
+
+      <section class="feature">
+        <div class="words">
+          <p class="lead">
+            Get to zero.
+            <span class="sub"
+              >Done, star or remind me on every mail, typed in plain words. ⌘Z
+              undoes any of them. When nothing is left, a photo.</span
+            >
+          </p>
+        </div>
+        <div class="backdrop"><div class="window" data-scene="zero"></div></div>
+      </section>
+
+      <section class="feature">
+        <div class="words">
+          <p class="lead">
+            <span class="named"><svg class="logo" viewBox="0 0 199 195" aria-hidden="true"><mask id="ai-mask"><path d="M123.804 28.8318L115.918 16.1007C108.224 3.67997 90.1556 3.67996 82.4621 16.1007L74.5764 28.8318C60.0918 52.2163 42.8812 73.7977 23.3062 93.1226L12.649 103.644C2.25171 113.908 6.27243 131.524 20.0937 136.261L34.2603 141.116C60.2815 150.033 85.1516 162.01 108.348 176.794L120.976 184.843C133.297 192.696 149.577 184.856 151.119 170.327L152.7 155.436C155.604 128.082 161.746 101.17 170.998 75.2659L176.035 61.1631C180.949 47.4039 169.683 33.2771 155.176 35.0063L140.306 36.7787C112.992 40.0342 85.3882 40.0342 58.0745 36.7787L43.2042 35.0063C28.6965 33.2771 17.4308 47.4039 22.3449 61.1631L27.3817 75.2659C36.6336 101.17 42.776 128.082 45.68 155.436L47.2609 170.327C48.8034 184.856 65.0828 192.696 77.4035 184.843L90.0321 176.794C113.228 162.01 138.098 150.033 164.12 141.116L178.286 136.261C192.108 131.524 196.128 113.908 185.731 103.644L175.074 93.1226C155.499 73.7977 138.288 52.2163 123.804 28.8318Z" fill="none" stroke="#fff" stroke-width="13.57" /></mask><foreignObject width="199" height="195" mask="url(#ai-mask)"><div xmlns="http://www.w3.org/1999/xhtml" style="width:100%;height:100%;background:conic-gradient(from 90deg at 50% 52%,rgba(8, 148, 255, 1) 0deg,rgba(147, 203, 255, 1) 28.2301deg,rgba(255, 196, 46, 1) 77.6306deg,rgba(255, 144, 4, 1) 179.299deg,rgba(255, 46, 84, 1) 229.644deg,rgba(201, 89, 221, 1) 283.066deg,rgba(93, 104, 255, 1) 333.657deg,rgba(8, 148, 255, 1) 360deg)"></div></foreignObject></svg>Apple Intelligence</span>, on your Mac.
+            <span class="sub"
+              >One key summarizes a whole conversation. Labels say what each mail is and what waits for your reply. Translate any mail into your language, in place.</span
+            >
+          </p>
+          <p class="note">
+            <b>Nothing leaves your Mac.</b> It runs on Apple's on-device model.
+          </p>
+        </div>
+        <div class="backdrop">
+          <div class="window" data-scene="apple"></div>
+        </div>
+      </section>
+
+      <section class="feature">
+        <div class="words">
+          <p class="lead">
+            Your own <span class="named"><svg class="logo" viewBox="0 0 24 24" aria-hidden="true"><path fill="#d97757" d="m4.7144 15.9555 4.7174-2.6471.079-.2307-.079-.1275h-.2307l-.7893-.0486-2.6956-.0729-2.3375-.0971-2.2646-.1214-.5707-.1215-.5343-.7042.0546-.3522.4797-.3218.686.0608 1.5179.1032 2.2767.1578 1.6514.0972 2.4468.255h.3886l.0546-.1579-.1336-.0971-.1032-.0972L6.973 9.8356l-2.55-1.6879-1.3356-.9714-.7225-.4918-.3643-.4614-.1578-1.0078.6557-.7225.8803.0607.2246.0607.8925.686 1.9064 1.4754 2.4893 1.8336.3643.3035.1457-.1032.0182-.0728-.164-.2733-1.3539-2.4467-1.445-2.4893-.6435-1.032-.17-.6194c-.0607-.255-.1032-.4674-.1032-.7285L6.287.1335 6.6997 0l.9957.1336.419.3642.6192 1.4147 1.0018 2.2282 1.5543 3.0296.4553.8985.2429.8318.091.255h.1579v-.1457l.1275-1.706.2368-2.0947.2307-2.6957.0789-.7589.3764-.9107.7468-.4918.5828.2793.4797.686-.0668.4433-.2853 1.8517-.5586 2.9021-.3643 1.9429h.2125l.2429-.2429.9835-1.3053 1.6514-2.0643.7286-.8196.85-.9046.5464-.4311h1.0321l.759 1.1293-.34 1.1657-1.0625 1.3478-.8804 1.1414-1.2628 1.7-.7893 1.36.0729.1093.1882-.0183 2.8535-.607 1.5421-.2794 1.8396-.3157.8318.3886.091.3946-.3278.8075-1.967.4857-2.3072.4614-3.4364.8136-.0425.0304.0486.0607 1.5482.1457.6618.0364h1.621l3.0175.2247.7892.522.4736.6376-.079.4857-1.2142.6193-1.6393-.3886-3.825-.9107-1.3113-.3279h-.1822v.1093l1.0929 1.0686 2.0035 1.8092 2.5075 2.3314.1275.5768-.3218.4554-.34-.0486-2.2039-1.6575-.85-.7468-1.9246-1.621h-.1275v.17l.4432.6496 2.3436 3.5214.1214 1.0807-.17.3521-.6071.2125-.6679-.1214-1.3721-1.9246L14.38 17.959l-1.1414-1.9428-.1397.079-.674 7.2552-.3156.3703-.7286.2793-.6071-.4614-.3218-.7468.3218-1.4753.3886-1.9246.3157-1.53.2853-1.9004.17-.6314-.0121-.0425-.1397.0182-1.4328 1.9672-2.1796 2.9446-1.7243 1.8456-.4128.164-.7164-.3704.0667-.6618.4008-.5889 2.386-3.0357 1.4389-1.882.929-1.0868-.0062-.1579h-.0546l-6.3385 4.1164-1.1293.1457-.4857-.4554.0608-.7467.2307-.2429 1.9064-1.3114Z" /></svg>Claude</span>, if you want it.
+            <span class="sub"
+              >Press ⌘J and say what to write, or speak it. Claude drafts the
+              reply in your voice.</span
+            >
+          </p>
+          <p class="note">
+            <b>Optional.</b> It uses your Claude Code, on your own subscription.
+            voa adds no cloud.
+          </p>
+        </div>
+        <div class="backdrop">
+          <div class="window" data-scene="claude"></div>
+        </div>
+      </section>
+
+      <section class="feature">
+        <div class="words">
+          <p class="lead">
+            Every account, one list.
+            <span class="sub"
+              >Gmail, Outlook and any IMAP server, a colored dot for each. 1 to
+              9 shows one, 0 shows all, / searches every one.</span
+            >
+          </p>
+        </div>
+        <div class="backdrop">
+          <div class="window" data-scene="accounts"></div>
+        </div>
+      </section>
+
+      <section class="faq">
+        <p class="lead">Questions. <span class="sub">The short answers.</span></p>
+        <div class="faq-list">
+          <details>
+            <summary>Is voa really free?</summary>
+            <p>Yes. No subscription, no trial, no account. The code is open source under Apache 2.0. If it helps you, you can buy me a coffee; the app stays the same either way.</p>
+          </details>
+          <details>
+            <summary>Does my mail leave my Mac?</summary>
+            <p>No. voa keeps your mail in a local database on your Mac and talks straight to Gmail, Outlook or your IMAP server. There is no voa server in between.</p>
+          </details>
+          <details>
+            <summary>Which accounts can I add?</summary>
+            <p>Gmail, personal Outlook and Hotmail accounts, and any IMAP server. All of them land in one list, a colored dot for each.</p>
+          </details>
+          <details>
+            <summary>Do I need to set anything up for Gmail or Outlook?</summary>
+            <p>For now, yes, once. voa has no server of its own, so you sign in with your own Google client (about ten minutes, <a href="https://github.com/plainroom/voa/blob/main/docs/google-client.md">the steps</a>) or your own Microsoft app (about five minutes, <a href="https://github.com/plainroom/voa/blob/main/docs/microsoft-client.md">the steps</a>). Or skip it: add the account by IMAP with an app password, Gmail included.</p>
+          </details>
+          <details>
+            <summary>Which Macs can run it?</summary>
+            <p>A Mac with Apple silicon. voa is best on macOS 26, where summaries, labels, translation and Speak run on your Mac. It also opens on macOS 12 to 15, with everything else working: one inbox, done, star, remind me, search and writing with Claude.</p>
+          </details>
+          <details>
+            <summary>What do I need for Apple Intelligence?</summary>
+            <p>A Mac with Apple silicon on macOS 26 or later, with Apple Intelligence turned on in System Settings. Summaries and labels run on Apple's on-device model, on your Mac.</p>
+          </details>
+          <details>
+            <summary>Do I need Claude?</summary>
+            <p>No, it's optional. If you have Claude Code on your Mac, ⌘J and Speak write and change your drafts on your own subscription. voa adds no cloud of its own.</p>
+          </details>
+          <details>
+            <summary>Is it safe to open any mail?</summary>
+            <p>Mail shows in an isolated frame where no script runs, and links open in your browser. If a send might not have gone through, voa tells you and never sends it again by itself.</p>
+          </details>
+          <details>
+            <summary>Can I build it myself?</summary>
+            <p>Yes. Clone the <a href="https://github.com/plainroom/voa">repository</a>, install Node and Rust, and run <code>npm run tauri build</code>. The README has the steps.</p>
+          </details>
+        </div>
+      </section>
+
+      <section class="end">
+        <p class="lead">Get to zero today.</p>
+        <div class="actions">
+          <a class="button" data-tip="Apple silicon, macOS 26 recommended" href="https://github.com/plainroom/voa/releases/latest">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701" /></svg>
+            Download for Mac
+          </a>
+          <a class="button ghost" id="sponsor" href="https://github.com/sponsors/pseudonym-dev"><span class="heart" aria-hidden="true">♥</span>Buy me a coffee</a>
+        </div>
+        <canvas class="end-lines" aria-hidden="true"></canvas>
+      </section>
+
+      <footer>
+        <div class="foot-brand">
+          <a class="brand" href="#"><svg class="mark-logo" viewBox="0 0 24 24" aria-hidden="true"><path fill="#1d1d1f" d="M12 2 21 6 12 10 3 6Z" /><path fill="#3a3a3d" d="M2 7.5 11 11.5V22.5L2 18.5Z" /><path fill="#6e6e73" d="M13 11.5 14 11 17 15 22 7.5V18.5L13 22.5Z" /></svg>voa</a>
+          <p>The calm inbox for your Mac. Free and open source, Apache 2.0.</p>
+        </div>
+        <nav class="foot-links" aria-label="Footer">
+          <div>
+            <h3>Download</h3>
+            <a href="https://github.com/plainroom/voa/releases/latest">Download for Mac</a>
+            <a href="https://github.com/plainroom/voa/releases">All releases</a>
+            <a href="https://github.com/plainroom/voa#readme">Build from source</a>
+          </div>
+          <div>
+            <h3>Project</h3>
+            <a href="https://github.com/plainroom/voa">GitHub</a>
+            <a href="https://github.com/sponsors/pseudonym-dev">Buy me a coffee</a>
+            <a href="https://github.com/plainroom/voa/blob/main/LICENSE">License</a>
+          </div>
+          <div>
+            <h3>Credits</h3>
+            <a href="https://github.com/avihaymenahem/velo">A fork of Velo</a>
+            <a href="https://unsplash.com">Photos from Unsplash</a>
+          </div>
+        </nav>
+      </footer>
+    </div>
+  </body>
+</html>
+    <script type="module">
+      // The inbox-zero photo the hero and the close draw in lines (the app shows it at inbox zero), at 480 px: the lines read one pixel
+      // per dash, so the full photo would only be downloaded to be shrunk.
+      import peaks from "./peaks.jpg";
+      // Each [data-scene] window holds the real app (its in-memory demo, app.html?demo=site) and a script of keys pressed in it.
+      const APP = "app.html?demo=site";
+      const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+
+      // The box around an element that is a panel of its own (a picker, a bar): the first ancestor at least 60 px high.
+      const panel = (el, min = 60) => {
+        while (el && el.getBoundingClientRect().height < min) el = el.parentElement;
+        return el;
+      };
+      const union = (a, b) =>
+        a && b
+          ? { x: Math.min(a.x, b.x), y: Math.min(a.y, b.y), width: Math.max(a.right, b.right) - Math.min(a.x, b.x), height: Math.max(a.bottom, b.bottom) - Math.min(a.y, b.y) }
+          : a ?? b;
+
+      // The features: each one shows only the piece of the app it is about (the rest of the screen hidden), zoomed in, while it works.
+      const SCENES = {
+        async hero(k) {
+          // The inbox first, its labels and the flight, before anything opens.
+          await sleep(2200);
+          await k.press("Enter", "Open", 1400);
+          await k.press("i", "Summarize", 3200);
+          await k.press("r", "Reply", 900);
+          await k.press("j", "Speak", 3600, { metaKey: true, shiftKey: true, cap: "⌘⇧J" });
+          await k.press("Enter", "Send to Claude", 4600);
+          await k.press("Escape", "Close", 900, { cap: "esc" });
+          await k.press("e", "Done", 3200);
+          for (let i = 0; i < 6 && !k.zero(); i++) await k.press("e", "Done", 900);
+          await sleep(3500);
+        },
+        async zero(k) {
+          await k.press("h", "", 300);
+          const field = await k.wait(() => k.doc().querySelector("input"));
+          await k.show([panel(field)], "h", "Remind me");
+          await k.type("friday 2pm", 90);
+          await sleep(2600);
+        },
+        async apple(k) {
+          await k.press("Enter", "", 300);
+          await k.press("i", "", 300);
+          const card = await k.wait(() => k.doc().querySelector('section[aria-label="Summary"]'));
+          // The summary over the mail it sums up: the conversation's column is shown, the cut is the card and the start of the mail.
+          const mail = card.nextElementSibling ?? card.parentElement.lastElementChild;
+          // ponytail: 150 px of the mail under the card (as the card grows), its sender and first lines, so it reads as a summary of a mail.
+          const under = { getBoundingClientRect: () => { const r = card.getBoundingClientRect(); return { x: r.x, y: r.bottom, width: r.width, height: 150, right: r.right, bottom: r.bottom + 150 }; } };
+          await k.show([card, mail], "i", "Summarize", [card, under]);
+          await sleep(3800);
+        },
+        async claude(k) {
+          await k.press("c", "", 300);
+          const column = await k.wait(() => k.doc().querySelector("main > div"));
+          await k.show([column]);
+          await sleep(700);
+          // ⌘⇧J is the compose screen's own key: pressed from inside it, since a frame never focused has nothing focused.
+          k.doc().querySelector(".ProseMirror")?.focus();
+          await k.press("j", "Speak", 3000, { metaKey: true, shiftKey: true, cap: "⌘⇧J" });
+          await k.press("Enter", "Send to Claude", 3400);
+          await sleep(1800);
+        },
+        async accounts(k) {
+          await k.press("/", "", 300);
+          const view = await k.wait(() => k.doc().querySelector("input") && k.doc().querySelector("main"));
+          const field = panel(k.doc().querySelector("input"), 40);
+          await k.show([field, view], "/", "Search", [field]);
+          await k.type("week", 110);
+          // The cut grows to the hits once they are listed: the field down to the last one.
+          const last = await k.wait(() => k.text("Pagebook"));
+          // Measured on the search's own header (its full width, with the app's margins) down to the last hit, not on the bare field,
+          // so the hits' dots and names keep the app's left margin instead of touching the cut.
+          await k.show([field, view], null, null, [field, last]);
+          await sleep(2800);
+        },
+      };
+
+      // The app scrolls its selection into view and focuses its fields, which in a frame scrolls this page too.
+      // Keep both inside the app: scroll only the nearest scrolling box, and focus without scrolling.
+      // The inbox-zero photo drawn in lines, like a print: each row a run of dashes, thicker where the photo is darker.
+      function lines(canvas, src, ink) {
+        const img = new Image();
+        img.src = src;
+        img.onload = () => {
+          const dpr = devicePixelRatio || 1;
+          const W = canvas.clientWidth;
+          const H = canvas.clientHeight;
+          canvas.width = W * dpr;
+          canvas.height = H * dpr;
+          const g = canvas.getContext("2d");
+          g.scale(dpr, dpr);
+          g.fillStyle = ink;
+          const GAP = 8;
+          const CELL = 6;
+          const cols = Math.ceil(W / CELL);
+          const rows = Math.ceil(H / GAP);
+          // The photo, cover-fit, read at one pixel per dash.
+          const small = new OffscreenCanvas(cols, rows);
+          const s = small.getContext("2d");
+          const r = Math.max(cols / img.width, rows / img.height);
+          s.drawImage(img, (cols - img.width * r) / 2, (rows - img.height * r) / 2, img.width * r, img.height * r);
+          const px = s.getImageData(0, 0, cols, rows).data;
+          // Stretched between the photo's own darkest and lightest tenth, so the pink sky reads light and the peaks dark.
+          const lums = [];
+          for (let i = 0; i < px.length; i += 4) lums.push((0.299 * px[i] + 0.587 * px[i + 1] + 0.114 * px[i + 2]) / 255);
+          const sorted = [...lums].sort((a, b) => a - b);
+          const lo = sorted[Math.floor(sorted.length * 0.1)];
+          const hi = sorted[Math.floor(sorted.length * 0.9)];
+          for (let y = 0; y < rows; y++)
+            for (let x = 0; x < cols; x++) {
+              const d = Math.pow(1 - Math.min(1, Math.max(0, (lums[y * cols + x] - lo) / (hi - lo))), 1.6);
+              // ponytail: only the darker half of the photo is drawn, so the peaks read and the rest stays paper.
+              if (d < 0.3) continue;
+              const t = Math.max(1.5, d * (GAP - 2.5));
+              g.fillRect(x * CELL, y * GAP + (GAP - t) / 2, CELL - 1, t);
+            }
+        };
+      }
+      const stage = document.querySelector(".hero-stage");
+      // Drawn once the page is up, so the lines never hold back its first paint. The app's travel label blue (--color-label-travel).
+      const drawLines = () => {
+        lines(stage.querySelector("canvas"), peaks, "#7f97c2");
+        lines(document.querySelector(".end-lines"), peaks, "#7f97c2");
+      };
+      addEventListener("load", drawLines);
+      // Again at a new width (a phone turned), so the dashes are never a stretched bitmap. ponytail: 200 ms after the last resize.
+      let redraw;
+      addEventListener("resize", () => (clearTimeout(redraw), (redraw = setTimeout(drawLines, 200))));
+
+      // A hairline under the nav once the page has scrolled under it.
+      // Chrome draws a small icon that starts at a fractional pixel soft on a 1x screen (Safari does not):
+      // each one is nudged onto whole pixels, again when the window changes size.
+      const icons = document.querySelectorAll(".site-nav svg, .actions svg, .logo");
+      const snap = () =>
+        icons.forEach((icon) => {
+          icon.style.translate = "";
+          const r = icon.getBoundingClientRect();
+          icon.style.translate = `${Math.round(r.x) - r.x}px ${Math.round(r.y) - r.y}px`;
+        });
+      document.fonts.ready.then(snap);
+      addEventListener("resize", snap);
+
+      const nav = document.querySelector(".site-nav");
+      addEventListener("scroll", () => nav.classList.toggle("stuck", scrollY > 0), { passive: true });
+      const navDownload = nav.querySelector(".nav-download");
+      new IntersectionObserver(([e]) => {
+        const away = !e.isIntersecting && e.boundingClientRect.top < 0;
+        nav.classList.toggle("cta", away);
+        navDownload.tabIndex = away ? 0 : -1;
+      }).observe(document.querySelector(".hero .actions"));
+      // The coffee moves when the Download opens beside it: put its icon back on whole pixels.
+      navDownload.addEventListener("transitionend", snap);
+
+
+      const SAFARI = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+
+      // Safari scrolls this page to a field the app focuses inside a frame, whatever the frame asks: a scroll that comes right after a
+      // frame acted (a key, a field, a load) and that the visitor did not make is undone. Anything else (find in page, a screen
+      // reader, a scrollbar) scrolls as usual. ponytail: 600 ms counts as "right after", the app's own reaction to a key.
+      let acted = 0;
+      const frameActed = () => (acted = Date.now());
+      let touched = 0;
+      for (const kind of ["wheel", "touchmove", "keydown", "pointerdown"]) addEventListener(kind, () => (touched = Date.now()), { capture: true, passive: true });
+      let settled = scrollY;
+      addEventListener(
+        "scroll",
+        () => {
+          if (Date.now() - acted < 600 && Date.now() - touched > 1000 && scrollY !== settled) scrollTo(0, settled);
+          else settled = scrollY;
+        },
+        { passive: true },
+      );
+
+      function contain(w) {
+        const P = w.HTMLElement.prototype;
+        const focus = P.focus;
+        P.focus = function (opts) {
+          focus.call(this, { ...opts, preventScroll: true });
+        };
+        w.Element.prototype.scrollIntoView = function () {
+          let box = this.parentElement;
+          while (box && !(box.scrollHeight > box.clientHeight && /auto|scroll/.test(w.getComputedStyle(box).overflowY))) box = box.parentElement;
+          if (!box) return;
+          const r = this.getBoundingClientRect();
+          const b = box.getBoundingClientRect();
+          if (r.top < b.top) box.scrollTop -= b.top - r.top;
+          else if (r.bottom > b.bottom) box.scrollTop += r.bottom - b.bottom;
+        };
+      }
+
+      function mount(win) {
+        const run = SCENES[win.dataset.scene];
+        const frame = document.createElement("iframe");
+        frame.tabIndex = -1;
+        frame.setAttribute("aria-hidden", "true");
+        // The app at a Mac window's size, scaled to the page: the hero shows the whole window, a feature only its piece (show).
+        const screen = document.createElement("div");
+        screen.className = "screen";
+        const hero = win.dataset.scene === "hero";
+        // ponytail: the hero's app at 1100 wide (its text readable at the page's size), 720 on a phone; a feature's at 780, so the
+        // app's centered column is what its pieces are cut from.
+        const W = hero ? (innerWidth < 860 ? 720 : 1100) : 780;
+        const H = W * (hero ? 0.625 : 2 / 3);
+        Object.assign(screen.style, { width: `${W}px`, height: `${H}px` });
+        screen.append(frame);
+        // The window's traffic lights stay at its corner while the app inside is scaled, and hide when a feature shows only its piece.
+        const lights = document.createElement("span");
+        lights.className = "lights";
+        lights.innerHTML = "<i></i><i></i><i></i>";
+        // A feature's piece is panned into its cut by this wrapper, so the zoom of the screen itself stays a plain scale.
+        const pan = document.createElement("div");
+        pan.className = "pan";
+        pan.append(screen);
+        const cap = document.createElement("div");
+        cap.className = "keycap";
+        win.append(pan, lights);
+        (hero ? win : win.parentElement).append(cap);
+        let base = 1; // the window's own scale: the app's pixels to the page's
+        let area = null; // the piece of the app a feature shows, in the app's own pixels
+        let fitting = []; // what the cut is measured on
+        let zoom = null; // a round's zoom, set when its piece first shows, so the cut never changes width as the piece grows
+        let grow = null; // the watcher of the shown piece's size, one per loaded frame
+        // In Chrome, zoom, not a transform: the app is laid out again at this size, so its text and icons stay sharp instead of a
+        // scaled bitmap. Safari applies a zoom twice to a frame (its box and its page) and already scales a transform sharply.
+        const scaleTo = (z) => (SAFARI ? (screen.style.transform = `scale(${z})`) : (screen.style.zoom = z));
+        const layout = () => {
+          base = hero ? win.clientWidth / W : Math.min(1, win.parentElement.clientWidth / 840);
+          if (!area) {
+            if (!hero) Object.assign(win.style, { width: `${W * base}px`, height: `${H * base}px`, left: "", top: "" });
+            scaleTo(base);
+            pan.style.transform = "";
+            lights.style.visibility = "";
+            return;
+          }
+          // A feature's piece: the window becomes a small cut around it, zoomed in, in the middle of the backdrop.
+          const box = win.parentElement;
+          const floating = getComputedStyle(win).position === "absolute"; // on a phone the backdrop grows with the window instead
+          // On a phone the cut takes all the width it can, its margins small, so the piece is as large as the screen allows.
+          const [pad, margin] = floating ? [24, 48] : [12, 16];
+          // The width decides the zoom (ponytail: 1.3 times the window's own scale at most, on a large screen); a piece taller than
+          // the backdrop is cropped at the bottom.
+          zoom ??= Math.min(floating ? base * 1.3 : 1, (box.clientWidth - margin - pad * 2) / area.width);
+          const z = zoom;
+          // As the piece grows the cut grows down, never past the backdrop: what is below is cut off, as in a crop.
+          const w = Math.round(area.width * z + pad * 2);
+          const h = Math.round(Math.min(area.height * z + pad * 2, floating ? box.clientHeight - 48 : Infinity));
+          Object.assign(win.style, { width: `${w}px`, height: `${h}px` });
+          if (floating)
+            Object.assign(win.style, { left: `${Math.round((box.clientWidth - w) / 2)}px`, top: `${Math.round((box.clientHeight - h) / 2)}px` });
+          scaleTo(z);
+          pan.style.transform = `translate(${Math.round(pad - area.x * z)}px, ${Math.round(pad - area.y * z)}px)`;
+          lights.style.visibility = "hidden";
+        };
+        new ResizeObserver(layout).observe(hero ? win : win.parentElement);
+
+        let hide;
+        // The key just pressed and what it does, under the window for `ms`.
+        const capOn = (key, label, ms) => {
+          cap.innerHTML = `<kbd>${key}</kbd>${label}`;
+          cap.classList.add("on");
+          clearTimeout(hide);
+          hide = setTimeout(() => cap.classList.remove("on"), ms);
+        };
+        const send = (key, opts) =>
+          frameActed() &&
+          (k.doc().activeElement ?? k.doc().body).dispatchEvent(
+            new frame.contentWindow.KeyboardEvent("keydown", { key, bubbles: true, cancelable: true, ...opts }),
+          );
+        // A round the visitor scrolled away from ends at its next step.
+        const stop = () => {
+          if (left) throw new Error("left the section");
+        };
+        const k = {
+          doc: () => frame.contentDocument,
+          async press(key, label, after = 700, opts = {}) {
+            stop();
+            // { show: true }: only the keycap, for a key already pressed.
+            if (opts.show) {
+              capOn(opts.cap ?? key, label, 1400);
+              return sleep(after);
+            }
+            if (!label) {
+              await sleep(after);
+              return send(key, opts);
+            }
+            capOn(opts.cap ?? (key === "Enter" ? "↵" : key), label, Math.max(after - 150, 500));
+            await sleep(350);
+            send(key, opts);
+            await sleep(after);
+          },
+          async type(text, every = 90) {
+            stop();
+            // The field a key just opened takes a moment to have the focus: wait for it, up to 4 s.
+            for (let i = 0; i < 40 && !("value" in (k.doc().activeElement ?? {})); i++) await sleep(100);
+            // A frame the page never focused may leave the field without focus (the search's): then the screen's one field.
+            const active = k.doc().activeElement;
+            const el = "value" in active ? active : k.doc().querySelector("input, textarea");
+            if (!el) throw new Error("no field to type in");
+            frameActed();
+            const set = Object.getOwnPropertyDescriptor(
+              Object.getPrototypeOf(el),
+              "value",
+            ).set;
+            for (let i = 1; i <= text.length; i++) {
+              set.call(el, text.slice(0, i));
+              el.dispatchEvent(
+                new frame.contentWindow.Event("input", { bubbles: true }),
+              );
+              await sleep(every);
+            }
+            await sleep(300);
+          },
+          zero: () => /All clear/.test(k.doc().body.innerText),
+          // The innermost element whose own text is this.
+          text: (t) => [...k.doc().querySelectorAll("body *")].reverse().find((el) => el.textContent.trim() === t),
+          // What the screen will have, asked again every 100 ms for up to 4 s.
+          async wait(find) {
+            for (let i = 0; i < 40; i++) {
+              const found = find();
+              if (found) return found;
+              await sleep(100);
+            }
+          },
+          // Only these elements of the app stay visible, zoomed in on and faded in (with the key that brought them, when one did).
+          // `fit`: what the cut is measured on, when it is smaller than what is shown (a list that fills the screen).
+          async show(els, key, label, fit = els) {
+            stop();
+            const doc = k.doc();
+            const marked = els.filter((el) => el instanceof frame.contentWindow.Element);
+            for (const el of marked) el.setAttribute("data-shown", "");
+            if (!doc.getElementById("shown"))
+              doc.head.insertAdjacentHTML("beforeend", '<style id="shown">body *{visibility:hidden!important}[data-shown],[data-shown] *{visibility:visible!important}</style>');
+            frameActed();
+            // The cut follows the piece as it grows (a summary written after "Summarizing…", Claude's draft), measured on what was
+            // last asked to fit: one watcher per frame, so an earlier, smaller cut never comes back.
+            fitting = fit.filter(Boolean);
+            const measure = () => {
+              area = fitting.map((el) => el.getBoundingClientRect()).reduce((a, b) => union(a, b));
+              layout();
+            };
+            measure();
+            if (!grow) grow = new frame.contentWindow.ResizeObserver(() => area && measure());
+            marked.forEach((el) => grow.observe(el));
+            win.style.opacity = "1";
+            if (key) await k.press(key, label, 600, { cap: key, show: true });
+          },
+        };
+
+        // Each frame loads with the page; its scene runs while it is on screen, and waits while it is not.
+        let onScreen = false;
+        let running = false;
+        let left = false;
+        let wake = () => {};
+        // "On screen": most of it in view (60%), so a feature plays when the visitor has come to its section, not as it peeks in.
+        new IntersectionObserver(
+          ([e]) => {
+            onScreen = e.isIntersecting;
+            if (onScreen) wake();
+            else if (running) left = true; // the round stops at its next step, so a return starts from the beginning
+          },
+          { threshold: 0.6 },
+        ).observe(win.closest(".feature") ?? win);
+        const seen = () => (onScreen ? Promise.resolve() : new Promise((r) => (wake = r)));
+        const load = () => {
+          frame.src = `${APP}&scene=${win.dataset.scene}`;
+          return new Promise((r) => (frame.onload = r)).then(() => (frameActed(), contain(frame.contentWindow)));
+        };
+        if (!hero) win.style.opacity = "0"; // a feature shows only once its piece is on, never the whole screen first
+        // The hero's app loads with the page; a feature's once its section is a screen away, ready when the visitor gets there
+        // without five copies of the app loading at once on a phone.
+        const near = new Promise((r) => {
+          const o = new IntersectionObserver(([e]) => e.isIntersecting && (o.disconnect(), r()), { rootMargin: "100% 0px" });
+          o.observe(win);
+        });
+        let loaded = hero ? load() : near.then(load);
+        const loop = async () => {
+          for (;;) {
+            await loaded;
+            await seen();
+            await sleep(hero ? 1000 : 300);
+            running = true;
+            try {
+              await run(k);
+            } catch (err) {
+              if (!left) {
+                console.warn("scene", win.dataset.scene, err);
+                await sleep(2000);
+              }
+            }
+            running = left = false;
+            // A feature fades out, and its next round loads behind it.
+            if (!hero) {
+              win.style.opacity = "0";
+              await sleep(400);
+            }
+            area = null;
+            zoom = null;
+            grow?.disconnect();
+            grow = null;
+            layout();
+            loaded = load();
+          }
+        };
+        loop();
+      }
+      document.querySelectorAll("[data-scene]").forEach(mount);
+
+      fetch("https://api.github.com/repos/plainroom/voa")
+        .then((r) => (r.ok ? r.json() : null))
+        .then(
+          (repo) =>
+            repo &&
+            (document.getElementById("stars").textContent =
+              repo.stargazers_count.toLocaleString("en")),
+        )
+        .catch(() => {});
+    </script>
+  </body>
+</html>

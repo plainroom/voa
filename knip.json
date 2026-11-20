@@ -1,0 +1,7 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "entry": ["src/main.tsx", "src/test/setup.ts"],
+  "project": ["src/**/*.{ts,tsx}"],
+  "ignore": ["src/services/unsubscribe/**"],
+  "ignoreDependencies": ["tailwindcss", "@tauri-apps/plugin-http"]
+}

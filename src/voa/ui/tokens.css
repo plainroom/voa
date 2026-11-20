@@ -1,0 +1,141 @@
+/*
+ * voa design tokens. Defined once; every screen uses them through Tailwind utilities
+ * (bg-canvas, text-ink-2, text-body, rounded-control, ...). Light and dark come from the
+ * same tokens through light-dark(), following macOS (prefers-color-scheme) unless Settings >
+ * Appearance sets `scheme-light` / `scheme-dark` on the root; a subtree can force one the same way (the /ds page does).
+ */
+
+@theme {
+  /* Surfaces */
+  --color-canvas: light-dark(#ffffff, #161618);
+  --color-surface: light-dark(
+    #ffffff,
+    #222225
+  ); /* toast, picker: the only raised things */
+  --color-hover: light-dark(#f7f7f8, #1c1c1f);
+  --color-selected: light-dark(#f1f2f5, #232328);
+  --color-line: light-dark(rgba(0, 0, 0, 0.07), rgba(255, 255, 255, 0.08));
+
+  /* Text: primary, secondary (grey), tertiary (light grey) */
+  --color-ink: light-dark(#1d1d1f, #ececee);
+  --color-ink-2: light-dark(#6e6e73, #a1a1a6);
+  --color-ink-3: light-dark(#a8a8ad, #636367);
+
+  /* The tip under an icon: its own pair, since a context may recolor the text (the photo turns ink white). */
+  --color-tip: light-dark(#1d1d1f, #ececee);
+  --color-tip-ink: light-dark(#ffffff, #1d1d1f);
+
+  /* A trip card (flight): the one filled panel in the reader, a grey just off the canvas. */
+  --color-trip: light-dark(#fafafa, #1c1c1f);
+  /* Its flight path and plane: the one touch of color there. */
+  --color-trip-line: light-dark(#3b82c4, #7fb0e0);
+
+  /* The one accent is the primary itself: selection, focus, Undo. No second blue. */
+  --color-accent: light-dark(#1d1d1f, #ececee);
+
+
+  /* Type: SF Pro, four sizes */
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", system-ui,
+    sans-serif;
+  --text-meta: 11px;
+  --text-meta--line-height: 16px;
+  --text-body: 12.5px;
+  --text-body--line-height: 18px;
+  --text-title: 14px;
+  --text-title--line-height: 20px;
+  --text-display: 20px;
+  --text-display--line-height: 26px;
+
+  /* Spacing: Tailwind's 4px step (p-1 = 4px, p-2 = 8px, ...) */
+  --spacing: 4px;
+
+  /* Radius */
+  --radius-control: 6px;
+  --radius-panel: 10px;
+
+  /* Elevation, only for the toast and the picker */
+  --shadow-float: 0 1px 2px rgba(0, 0, 0, 0.06), 0 8px 24px rgba(0, 0, 0, 0.08);
+
+  /* Motion */
+  --ease-quiet: cubic-bezier(0.2, 0.7, 0.3, 1);
+  --animate-toast-in: vm-toast-in 200ms var(--ease-quiet);
+  --animate-fade-in: vm-fade-in 120ms var(--ease-quiet);
+
+  @keyframes vm-toast-in {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  @keyframes vm-fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+}
+
+/* Label hues (Settings > Labels): muted, in the family of the account hues; a tag mixes its hue into the grey text
+   over a faint tint of it (LabelTag), so a label tells itself apart without shouting. `static` like the account hues. */
+@theme static {
+  --color-label-respond: #c8836a;
+  --color-label-personal: #c99a7a;
+  --color-label-work: #8e9fb5;
+  --color-label-meeting: #6fa3ad;
+  --color-label-news: #b9a26b;
+  --color-label-marketing: #c08a9b;
+  --color-label-pitch: #9b8fc4;
+  --color-label-login: #8e98a6;
+  --color-label-invoice: #7fa98a;
+  --color-label-travel: #7f97c2;
+  --color-label-notification: #a19c96;
+}
+
+/* Account hues: muted, read only when looked for. `static` because AccountDot reads them
+ * through var(--color-account-N) from data, which Tailwind cannot see to keep them. */
+@theme static {
+  --color-account-1: light-dark(#e2a174, #c98d62);
+  --color-account-2: light-dark(#86a0d4, #7088bb);
+  --color-account-3: light-dark(#8db8a0, #76a089);
+  --color-account-4: light-dark(#d79aa8, #bd8390);
+  --color-account-5: light-dark(#ab9dd3, #9286bb);
+  --color-account-6: light-dark(#cdb682, #b29d6c);
+}
+
+:root {
+  color-scheme: light dark;
+  --vm-fast: 120ms;
+  --vm-slow: 200ms;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --shadow-float:
+      0 1px 2px rgba(0, 0, 0, 0.4), 0 10px 30px rgba(0, 0, 0, 0.45);
+  }
+}
+
+.scheme-light {
+  color-scheme: light;
+  --shadow-float: 0 1px 2px rgba(0, 0, 0, 0.06), 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+.scheme-dark {
+  color-scheme: dark;
+  --shadow-float: 0 1px 2px rgba(0, 0, 0, 0.4), 0 10px 30px rgba(0, 0, 0, 0.45);
+}
+
+/* The top bar over a full-bleed photo (inbox zero): the same components, white on the picture. */
+.on-photo {
+  --color-ink: #ffffff;
+  --color-ink-2: rgba(255, 255, 255, 0.85);
+  --color-ink-3: rgba(255, 255, 255, 0.65);
+  --color-warning: #ffffff;
+  --color-hover: rgba(255, 255, 255, 0.14);
+}

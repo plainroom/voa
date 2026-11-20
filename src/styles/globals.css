@@ -1,0 +1,111 @@
+/* Classes are found in src/ wherever the build runs from (the app, or the website's build rooted in site/). */
+@import "tailwindcss" source("..");
+
+@import "../voa/ui/tokens.css";
+
+/*
+ * Velo's semantic tokens, kept only so the Velo pieces still in the tree (the Add account
+ * dialogs, Modal, EmailRenderer, InlineReply) read in voa's greys. New code uses the voa tokens.
+ */
+@theme {
+  --color-bg-primary: var(--color-canvas);
+  --color-bg-secondary: var(--color-canvas);
+  --color-bg-tertiary: var(--color-hover);
+  --color-bg-hover: var(--color-hover);
+  --color-bg-selected: var(--color-selected);
+
+  --color-text-primary: var(--color-ink);
+  --color-text-secondary: var(--color-ink-2);
+  --color-text-tertiary: var(--color-ink-3);
+
+  --color-border-primary: var(--color-line);
+  --color-border-secondary: var(--color-line);
+
+  --color-accent-hover: var(--color-accent);
+  --color-accent-light: var(--color-selected);
+
+  --color-danger: #d14343;
+  --color-warning: #c98a2b;
+  --color-success: #3f8f5f;
+
+  --color-sidebar-bg: var(--color-canvas);
+  --color-sidebar-text: var(--color-ink);
+  --color-sidebar-hover: var(--color-hover);
+  --color-sidebar-active: var(--color-accent);
+}
+
+/* Dark mode follows macOS. Nothing uses `dark:` (the tokens carry both schemes); Settings > Appearance sets scheme-light / scheme-dark on the root. */
+@custom-variant dark (@media (prefers-color-scheme: dark));
+
+/* Base styles */
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-sans);
+  background: var(--color-canvas);
+  color: var(--color-text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow: hidden;
+}
+
+/* Velo's glass classes, flattened: no blur, the one floating shadow. */
+.glass-modal {
+  box-shadow: var(--shadow-float);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--color-line);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-ink-3);
+}
+
+/* Animations: the modal and the reply's Undo toast (react-transition-group), and its countdown bar. */
+:root {
+  --anim-fast: 150ms;
+  --anim-normal: 200ms;
+}
+
+@keyframes countdownBar {
+  from { width: 100%; }
+  to { width: 0%; }
+}
+
+.modal-enter { opacity: 0; }
+.modal-enter-active { opacity: 1; transition: opacity var(--anim-normal) ease-out; }
+.modal-exit { opacity: 1; }
+.modal-exit-active { opacity: 0; transition: opacity var(--anim-fast) ease-in; }
+
+.toast-enter { opacity: 0; transform: translateY(16px); }
+.toast-enter-active { opacity: 1; transform: translateY(0); transition: all var(--anim-normal) ease-out; }
+.toast-exit { opacity: 1; transform: translateY(0); }
+.toast-exit-active { opacity: 0; transform: translateY(16px); transition: all var(--anim-normal) ease-in; }
+
+/* Accessibility: respect reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition-duration: 0.01ms !important;
+  }
+}

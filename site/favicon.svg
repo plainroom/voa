@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+  <!-- The site's cube with its V, on a 24 grid; light on a dark browser bar. -->
+  <style>
+    .t { fill: #1d1d1f } .l { fill: #3a3a3d } .r { fill: #6e6e73 }
+    @media (prefers-color-scheme: dark) { .t { fill: #f2f1ec } .l { fill: #c9c7bf } .r { fill: #9a978c } }
+  </style>
+  <path class="t" d="M12 2 21 6 12 10 3 6Z" />
+  <path class="l" d="M2 7.5 11 11.5V22.5L2 18.5Z" />
+  <path class="r" d="M13 11.5 14 11 17 15 22 7.5V18.5L13 22.5Z" />
+</svg>

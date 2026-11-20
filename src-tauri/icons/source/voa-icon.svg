@@ -1,0 +1,35 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#161614"/>
+      <stop offset="1" stop-color="#10100e"/>
+    </linearGradient>
+    <linearGradient id="sheen" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.08"/>
+      <stop offset="0.4" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="rim" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.45"/>
+      <stop offset="0.5" stop-color="#ffffff" stop-opacity="0.06"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0.18"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="10" stdDeviation="14" flood-color="#000" flood-opacity="0.28"/>
+    </filter>
+    <filter id="tileShadow" x="-10%" y="-10%" width="120%" height="125%">
+      <feDropShadow dx="0" dy="12" stdDeviation="14" flood-color="#000" flood-opacity="0.30"/>
+    </filter>
+  </defs>
+  <!-- Apple icon grid: 824x824 tile centered on a 1024 canvas -->
+  <g filter="url(#tileShadow)">
+    <rect x="100" y="100" width="824" height="824" rx="186" fill="url(#bg)"/>
+  </g>
+  <rect x="100" y="100" width="824" height="824" rx="186" fill="url(#sheen)"/>
+  <rect x="102" y="102" width="820" height="820" rx="184" fill="none" stroke="url(#rim)" stroke-width="4"/>
+  <!-- glyph from the 256 logo: ~15% larger than the tile's 1:1 map, recentered -->
+  <g filter="url(#shadow)" transform="translate(38.2 38.2) scale(3.7015625)">
+    <path d="M128 65.1226L190 84.8713L128 104.611L66 84.8713L128 65.1226Z" fill="#ffffff"/>
+    <path d="M60 94.1288L122 113.878V190.878L60 171.129V94.1288Z" fill="#ffffff" fill-opacity="0.88"/>
+    <path d="M134 113.878L165 142.508L196 94.1288V171.129L134 190.878V113.878Z" fill="#ffffff" fill-opacity="0.66"/>
+  </g>
+</svg>
