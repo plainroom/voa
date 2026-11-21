@@ -1,5 +1,7 @@
 # voa
 
+https://github.com/user-attachments/assets/34ca3106-45c8-429a-a106-e5f0ebbf6f92
+
 One inbox for all your mail. Three ways out of a message: **done**, **star**, **remind me**. When the inbox is empty, a photo.
 
 voa is a small desktop mail client for people who read mail for a living and want it to end. Every account (Gmail, a personal Outlook or Hotmail account, or any IMAP/SMTP server) lands in the same list, with a colored dot to tell them apart. There is no sidebar, no folders to tend and no settings maze. Your mail and tokens stay in a local database on your machine; there is no voa server. Mail is shown in an isolated frame: no scripts run, and links open in your browser. If a send might not have gone through, voa tells you to check Sent and never sends it again by itself.
