@@ -195,13 +195,6 @@
         gap: 14px;
         margin-top: 24px;
       }
-      .gate {
-        /* Clears the download button's tip, which hangs about 30 px below the row. */
-        margin: 36px 0 0;
-        color: var(--ink-2);
-        font-size: 13px;
-        line-height: 1.45;
-      }
       .button {
         display: inline-flex;
         align-items: center;
@@ -279,7 +272,8 @@
         width: 100vw;
         /* ponytail: the window's top (100) plus its height at 980 px wide (612), plus room for its shadow. */
         height: 760px;
-        margin: 8px 0 0 calc(50% - 50vw);
+        /* 36px clears the download button's tip, which hangs about 30 px below the row. */
+        margin: 36px 0 0 calc(50% - 50vw);
       }
       .hero-stage canvas {
         position: absolute;
@@ -635,7 +629,7 @@
           >
         </p>
         <div class="actions" id="download">
-          <a class="button" aria-describedby="gate-hero" data-tip="Apple silicon, macOS 26 recommended" href="https://github.com/plainroom/voa/releases/latest" data-umami-event="download-dmg-hero" data-umami-event-url="https://github.com/plainroom/voa/releases/latest">
+          <a class="button" data-tip="Apple silicon, macOS 26 recommended" href="https://github.com/plainroom/voa/releases/latest" data-umami-event="download-dmg-hero" data-umami-event-url="https://github.com/plainroom/voa/releases/latest">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701" /></svg>
             Download for Mac
           </a>
@@ -644,7 +638,6 @@
             Star on GitHub<span class="stars" id="stars"></span>
           </a>
         </div>
-        <p class="gate" id="gate-hero">Not notarized yet. The first time, right-click voa and choose Open.</p>
       </main>
 
       <div class="hero-stage"><canvas></canvas><div class="window" data-scene="hero"></div></div>
@@ -737,10 +730,6 @@
             <p>A Mac with Apple silicon. voa is best on macOS 26, where summaries, labels, translation and Speak run on your Mac. It also opens on macOS 12 to 15, with everything else working: one inbox, done, star, remind me, search and writing with Claude.</p>
           </details>
           <details>
-            <summary>macOS will not open it the first time</summary>
-            <p>Not notarized yet. The first time, right-click voa and choose Open.</p>
-          </details>
-          <details>
             <summary>What do I need for Apple Intelligence?</summary>
             <p>A Mac with Apple silicon on macOS 26 or later, with Apple Intelligence turned on in System Settings. Summaries and labels run on Apple's on-device model, on your Mac.</p>
           </details>
@@ -762,13 +751,12 @@
       <section class="end">
         <p class="lead">Get to zero today.</p>
         <div class="actions">
-          <a class="button" aria-describedby="gate-end" data-tip="Apple silicon, macOS 26 recommended" href="https://github.com/plainroom/voa/releases/latest" data-umami-event="download-dmg-end" data-umami-event-url="https://github.com/plainroom/voa/releases/latest">
+          <a class="button" data-tip="Apple silicon, macOS 26 recommended" href="https://github.com/plainroom/voa/releases/latest" data-umami-event="download-dmg-end" data-umami-event-url="https://github.com/plainroom/voa/releases/latest">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701" /></svg>
             Download for Mac
           </a>
           <a class="button ghost" id="sponsor" href="https://github.com/sponsors/pseudonym-dev" target="_blank" rel="noopener" data-umami-event="github-sponsor-end" data-umami-event-url="https://github.com/sponsors/pseudonym-dev"><span class="heart" aria-hidden="true">♥</span>Buy me a coffee</a>
         </div>
-        <p class="gate" id="gate-end">Not notarized yet. The first time, right-click voa and choose Open.</p>
         <canvas class="end-lines" aria-hidden="true"></canvas>
       </section>
 
