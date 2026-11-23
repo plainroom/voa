@@ -10,8 +10,6 @@ voa is a small desktop mail client for people who read mail for a living and wan
 
 [Download for Mac](https://github.com/plainroom/voa/releases/latest). Apple silicon only. Best on macOS 26, where summaries, labels, translation and Speak run on your Mac. It also opens on macOS 12 to 15.
 
-Not notarized yet. The first time, right-click voa and choose Open.
-
 Apple Intelligence stays on your Mac. Claude is optional: ⌘J uses your own Claude Code, and ⌘⇧J speaks a request.
 
 ![The inbox: every account in one list, a colored dot for each](docs/screenshots/inbox.png)
